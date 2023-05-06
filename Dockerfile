@@ -6,20 +6,22 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --ignore-scripts
 
-
 COPY public ./public
 COPY src ./src
-
 
 RUN npm run build
 
 FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf.template
-COPY start.sh /start.sh
+
+
+ARG EVENTS=1024
+ARG PORT=8080
+RUN envsubst '${EVENTS},${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+
 COPY --from=builder /app/build /usr/share/nginx/html
 
-RUN chmod +x /start.sh
+EXPOSE $PORT
 
-
-CMD ["/start.sh"]
+CMD ["nginx", "-g", "daemon off;"]
