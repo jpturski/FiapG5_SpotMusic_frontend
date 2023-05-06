@@ -1,18 +1,23 @@
-FROM nginx:alpine
+FROM node:current-alpine AS builder
 
-COPY package.json /app/package.json
 WORKDIR /app
-RUN apk add --no-cache nodejs npm
-RUN npm install && npm cache clean --force
 
-COPY public /app/public
-COPY src /app/src
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+
+COPY public ./public
+COPY src ./src
+
+
 RUN npm run build
 
-RUN mv /app/build /usr/share/nginx/html
+FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf.template
 COPY start.sh /start.sh
+COPY --from=builder /app/build /usr/share/nginx/html
 
 RUN chmod +x /start.sh
 
