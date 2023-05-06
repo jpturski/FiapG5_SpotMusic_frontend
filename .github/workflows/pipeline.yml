@@ -65,10 +65,7 @@ jobs:
         with:
           service: ${{ vars.GOOGLE_MYAPPNAME }}-prod
           image:   ${{ vars.GOOGLE_ARTIFACT }}/${{ vars.GOOGLE_PROJECT_ID }}/${{ vars.ARTIFACTREGISTRY_REPOSITORY }}/${{ vars.GOOGLE_MYAPPNAME }}:latest
-          flags: '--allow-unauthenticated'
-          env_vars: |
-            PORT=${{ vars.PORT }}
-            EVENTS=${{ vars.EVENTS }}
+          flags: '--allow-unauthenticated --port=80'
 
       - name: Test Prod
         run: 'curl "${{ steps.prod-deploy.outputs.url }}"'
