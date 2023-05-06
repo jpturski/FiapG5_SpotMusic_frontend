@@ -21,6 +21,5 @@ COPY --from=builder /app/build /usr/share/nginx/html
 
 RUN chmod +x /start.sh
 
-EXPOSE $PORT
 
 CMD ["/start.sh"]
