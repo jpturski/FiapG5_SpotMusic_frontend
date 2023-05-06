@@ -42,12 +42,6 @@ jobs:
           cat key.json | docker login -u _json_key --password-stdin '${{ vars.GOOGLE_ARTIFACT }}'
 
       - name: Build & Push Image
-        with:
-          context: .
-          build-args: |
-            "PORT=${{ vars.PORT }}"|
-            "EVENTS=${{ vars.EVENTS }}"|
-            "REACT_APP_BACKEND_URL=${{ vars.REACT_APP_BACKEND_URL }}"
         run: |
           docker build -t ${{ vars.GOOGLE_ARTIFACT }}/${{ vars.GOOGLE_PROJECT_ID }}/${{ vars.ARTIFACTREGISTRY_REPOSITORY }}/${{ vars.GOOGLE_MYAPPNAME }}:latest .
           docker push ${{ vars.GOOGLE_ARTIFACT }}/${{ vars.GOOGLE_PROJECT_ID }}/${{ vars.ARTIFACTREGISTRY_REPOSITORY }}/${{ vars.GOOGLE_MYAPPNAME }}:latest
