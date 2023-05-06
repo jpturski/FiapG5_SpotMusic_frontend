@@ -1,17 +1,17 @@
-FROM node:latest AS build
-
-WORKDIR /app
-
-COPY ./package.json /app/package.json
-
-RUN yarn install
-COPY . .
-RUN npm run build
-
 FROM nginx:alpine
 
+COPY package.json /app/package.json
+WORKDIR /app
+RUN apk add --no-cache nodejs npm
+RUN npm install && npm cache clean --force
+
+COPY public /app/public
+COPY src /app/src
+RUN npm run build
+
+RUN mv /app/build /usr/share/nginx/html
+
 COPY nginx.conf /etc/nginx/nginx.conf.template
-COPY --from=build /app/build /usr/share/nginx/html
 COPY start.sh /start.sh
 
 RUN chmod +x /start.sh

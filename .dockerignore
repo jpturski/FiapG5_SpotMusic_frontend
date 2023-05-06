@@ -1,0 +1,7 @@
+.dockerignore
+node_modules
+*.log
+*.lock
+.git
+.gitignore
+*.md
