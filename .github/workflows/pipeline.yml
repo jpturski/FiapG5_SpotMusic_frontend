@@ -48,6 +48,7 @@ jobs:
         run: |-
           gcloud run deploy frontend \
             --quiet \
+            --region  ${{ vars.GOOGLE_REGION }} \
             --image ${{ vars.GOOGLE_ARTIFACT }}/${{ vars.GOOGLE_PROJECT_ID }}/${{ vars.ARTIFACTREGISTRY_REPOSITORY }}/frontend:latest \
             --platform managed \
             --allow-unauthenticated \
