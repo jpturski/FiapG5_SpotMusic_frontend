@@ -1,29 +1,31 @@
-FROM node:current-alpine AS builder
+##### Ambiente de Build
+FROM node:latest as react-build
+
+ARG BACKEND_URL="https://backend-prod-23truzl7ha-uc.a.run.app"
 
 WORKDIR /app
+COPY . ./
 
-COPY package.json package-lock.json ./
+RUN apt-get update && apt-get -y --no-install-recommends install gettext-base && rm -rf /var/lib/apt/lists/*
 
-RUN npm ci --ignore-scripts
+RUN envsubst < src/App.js > src/App.js.tmp && mv src/App.js.tmp src/App.js
 
-COPY public ./public
-COPY src ./src
+RUN cat src/App.js
 
-RUN npm run build
+RUN yarn
 
+RUN yarn build
+
+
+##### Imagem do Frontend
 FROM nginx:alpine
 
-COPY nginx.conf /etc/nginx/nginx.conf.template
+COPY nginx.conf /etc/nginx/conf.d/configfile.template
+COPY --from=react-build /app/build /usr/share/nginx/html
 
 
-ARG EVENTS
-ENV EVENTS=${EVENTS}
-ARG PORT
-ENV PORT=${PORT}
-ARG REACT_APP_BACKEND_URL 
-ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
-RUN envsubst '${EVENTS},${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+ENV PORT 8080
+ENV HOST 0.0.0.0
+EXPOSE 8080
 
-COPY --from=builder /app/build /usr/share/nginx/html
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD sh -c "envsubst '\$PORT' < /etc/nginx/conf.d/configfile.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
