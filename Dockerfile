@@ -1,26 +1,31 @@
-FROM node:current-alpine AS builder
+##### Ambiente de Build
+FROM node:latest as react-build
+
+ARG BACKEND_URL="url"
 
 WORKDIR /app
+COPY . ./
 
-COPY package.json package-lock.json ./
+RUN apt-get update && apt-get -y --no-install-recommends install gettext-base && rm -rf /var/lib/apt/lists/*
 
-RUN npm ci --ignore-scripts
+RUN envsubst < src/App.js > src/App.js.tmp && mv src/App.js.tmp src/App.js
+
+RUN cat src/App.js
+
+RUN yarn
+
+RUN yarn build
 
 
-COPY public ./public
-COPY src ./src
-
-
-RUN npm run build
-
+##### Imagem do Frontend
 FROM nginx:alpine
 
-COPY nginx.conf /etc/nginx/nginx.conf.template
-COPY start.sh /start.sh
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/configfile.template
+COPY --from=react-build /app/build /usr/share/nginx/html
 
-RUN chmod +x /start.sh
 
-EXPOSE $PORT
+ENV PORT 8080
+ENV HOST 0.0.0.0
+EXPOSE 8080
 
-CMD ["/start.sh"]
+CMD sh -c "envsubst '\$PORT' < /etc/nginx/conf.d/configfile.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
